@@ -1,5 +1,6 @@
 var status = "";
 var objects = [];
+var specified_object = "";
 
 function setup(){
  canvas = createCanvas(280, 280);
@@ -11,29 +12,28 @@ function setup(){
 }
 
 function draw(){
+    image(video, 0, 0, 280, 280);
+
     if(status != ""){
+        objectDetector.detect(video, getResults);
         console.log(objects);
-        image(video, 0, 0, 280, 280);
 
         for(var i = 0;i<objects.length;i++){
             fill('red');
-            stroke('red');
-            accuracy = objects[i].confidence;
-            percentage = floor(accuracy * 100);
-            strokeWeight(2);
-            text(objects[i].label + " " + percentage, objects[i].x, objects[i].y);
+            percentage = floor(objects[i].confidence * 100);
+            text(objects[i].label + " " + percentage + "%", objects[i].x, objects[i].y);
             noFill();
+            stroke('red');
             rect(objects[i].x, objects[i].y, objects[i].width, objects[i].height);
             
             if(specified_object == objects[i].label){
                 video.stop();
-                objectDetector.detect(getResults);
-                document.getElementById("object_status").innerHTML = objects[i].label + " " + "Found";
+                document.getElementById("object_status").innerHTML = specified_object + " " + "Found";
                 var synth = window.speechSynthesis;
-                var utterThis = new SpeechSynthesisUtterance(objects[i].label + "found");
+                var utterThis = new SpeechSynthesisUtterance(specified_object + "found");
                 synth.speak(utterThis);
             } else{
-                document.getElementById("object_status").innerHTML = objects[i].label + " " + " Not Found";
+                document.getElementById("object_status").innerHTML = specified_object + " " + " Not Found";
             }
         }
     }
@@ -41,9 +41,8 @@ function draw(){
 
 function start(){
  objectDetector = ml5.objectDetector('cocossd', modelLoaded);
- specified_object = document.getElementById("object_name_input").value;
- objectDetector.detect(video, getResults);
  document.getElementById("model_status_display").innerHTML = "Detecting Objects";
+ specified_object = document.getElementById("object_name_input").value;
 }
 
 function modelLoaded(){
